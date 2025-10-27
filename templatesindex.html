@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Crypto Scanner">
+    <title>加密货币形态扫描器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+        
+        .control-panel {
+            padding: 25px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 14px;
+        }
+        
+        select, input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            font-size: 16px;
+            background: white;
+            transition: all 0.3s ease;
+        }
+        
+        select:focus, input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .result-panel {
+            padding: 25px;
+            display: none;
+        }
+        
+        .result-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            border-left: 5px solid #667eea;
+        }
+        
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .symbol {
+            font-size: 18px;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+        
+        .pattern-type {
+            background: #667eea;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .score {
+            font-size: 24px;
+            font-weight: 700;
+            text-align: center;
+            margin: 10px 0;
+            color: #27ae60;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 15px 0;
+        }
+        
+        .info-item {
+            text-align: center;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        
+        .info-label {
+            font-size: 12px;
+            color: #7f8c8d;
+            margin-bottom: 5px;
+        }
+        
+        .info-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .chart-container {
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .chart-image {
+            max-width: 100%;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            display: none;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error {
+            background: #e74c3c;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+            display: none;
+        }
+        
+        .instructions {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+            font-size: 14px;
+            color: #856404;
+        }
+        
+        .instructions h3 {
+            margin-bottom: 10px;
+            color: #856404;
+        }
+        
+        .instructions ol {
+            padding-left: 20px;
+        }
+        
+        .instructions li {
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📈 加密货币形态扫描器</h1>
+            <p>专业级技术分析工具 - 专为移动端优化</p>
+        </div>
+        
+        <div class="instructions">
+            <h3>📱 添加到主屏幕使用</h3>
+            <ol>
+                <li>点击Safari分享按钮 <span style="font-style: italic;">(方框带向上箭头)</span></li>
+                <li>选择"添加到主屏幕"</li>
+                <li点击"添加"，即可像原生App一样使用</li>
+            </ol>
+        </div>
+        
+        <div class="control-panel">
+            <div class="form-group">
+                <label for="symbol">选择币种:</label>
+                <select id="symbol">
+                    <option value="BTC_USDT">BTC/USDT</option>
+                    <option value="ETH_USDT">ETH/USDT</option>
+                    <option value="BNB_USDT">BNB/USDT</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="interval">时间框架:</label>
+                <select id="interval">
+                    <option value="15m">15分钟</option>
+                    <option value="1h" selected>1小时</option>
+                    <option value="4h">4小时</option>
+                    <option value="1d">1天</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="kline_count">K线数量:</label>
+                <select id="kline_count">
+                    <option value="100">100根</option>
+                    <option value="200" selected>200根</option>
+                    <option value="300">300根</option>
+                </select>
+            </div>
+            
+            <button class="btn" onclick="startScan()" id="scanBtn">
+                🚀 开始扫描
+            </button>
+        </div>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>正在扫描中，请稍候...</p>
+            <p style="font-size: 12px; opacity: 0.7;">这可能需要几秒钟时间</p>
+        </div>
+        
+        <div class="error" id="error"></div>
+        
+        <div class="result-panel" id="resultPanel">
+            <!-- 结果将在这里显示 -->
+        </div>
+    </div>
+
+    <script>
+        let currentSymbols = [];
+        
+        // 页面加载时获取币种列表
+        window.addEventListener('load', function() {
+            fetch('/get_symbols')
+                .then(response => response.json())
+                .then(data => {
+                    currentSymbols = data.symbols;
+                    const symbolSelect = document.getElementById('symbol');
+                    symbolSelect.innerHTML = '';
+                    
+                    currentSymbols.forEach(symbol => {
+                        const option = document.createElement('option');
+                        option.value = symbol;
+                        option.textContent = symbol.replace('_USDT', '/USDT');
+                        symbolSelect.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('获取币种列表失败:', error);
+                });
+        });
+        
+        async function startScan() {
+            const symbol = document.getElementById('symbol').value;
+            const interval = document.getElementById('interval').value;
+            const klineCount = document.getElementById('kline_count').value;
+            
+            // 显示加载中
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('resultPanel').style.display = 'none';
+            document.getElementById('error').style.display = 'none';
+            document.getElementById('scanBtn').disabled = true;
+            
+            try {
+                const response = await fetch('/scan', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        symbol: symbol,
+                        interval: interval,
+                        kline_count: klineCount
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    displayResult(result);
+                } else {
+                    showError(result.error || '扫描失败');
+                }
+                
+            } catch (error) {
+                showError('网络错误: ' + error.message);
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('scanBtn').disabled = false;
+            }
+        }
+        
+        function displayResult(result) {
+            const resultPanel = document.getElementById('resultPanel');
+            
+            let chartHtml = '';
+            if (result.chart_image) {
+                chartHtml = `
+                    <div class="chart-container">
+                        <img src="data:image/png;base64,${result.chart_image}" 
+                             alt="价格图表" class="chart-image">
+                    </div>
+                `;
+            }
+            
+            const scoreColor = result.pattern_score >= 80 ? '#27ae60' : 
+                             result.pattern_score >= 60 ? '#f39c12' : '#e74c3c';
+            
+            resultPanel.innerHTML = `
+                <div class="result-card">
+                    <div class="result-header">
+                        <div class="symbol">${result.symbol.replace('_USDT', '/USDT')}</div>
+                        <div class="pattern-type">${result.interval}</div>
+                    </div>
+                    
+                    <div class="score" style="color: ${scoreColor}">
+                        ${result.pattern_score}%
+                    </div>
+                    
+                    <div style="text-align: center; margin-bottom: 15px;">
+                        <span class="pattern-type">${result.pattern_type}</span>
+                    </div>
+                    
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">当前价格</div>
+                            <div class="info-value">$${result.current_price.toFixed(4)}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">摆动高点</div>
+                            <div class="info-value">${result.swing_highs_count}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">摆动低点</div>
+                            <div class="info-value">${result.swing_lows_count}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">扫描时间</div>
+                            <div class="info-value">${result.timestamp.split(' ')[1]}</div>
+                        </div>
+                    </div>
+                    
+                    ${chartHtml}
+                </div>
+            `;
+            
+            resultPanel.style.display = 'block';
+            
+            // 滚动到结果区域
+            resultPanel.scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = '❌ ' + message;
+            errorDiv.style.display = 'block';
+            errorDiv.scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // 添加键盘支持
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                startScan();
+            }
+        });
+    </script>
+</body>
+</html>
