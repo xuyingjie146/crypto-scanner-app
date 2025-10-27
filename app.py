@@ -1,3 +1,24 @@
+python
+import sys
+import os
+
+# 确保在 Vercel 上能正确导入
+try:
+    from flask import Flask, render_template, request, jsonify
+    import pandas as pd
+    import numpy as np
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+    import matplotlib.dates as mdates
+    import requests
+    from scipy.signal import argrelextrema
+    from scipy.stats import linregress
+except ImportError as e:
+    print(f"导入错误: {e}")
+    # 简化版本，避免复杂依赖
+    pass
+
 from flask import Flask, render_template, request, jsonify, send_file
 import sys
 import os
